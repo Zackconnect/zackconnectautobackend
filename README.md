@@ -36,7 +36,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_private_service_role_key
 
 Get the connection string from your Supabase project's database settings. For Render, use the Supabase connection string intended for external/server connections. Replace any password placeholder with your database password, and keep the connection string private.
 
-Create a public Supabase Storage bucket named `vehicles` for vehicle and website images. Keep the service-role key only in Render's backend environment variables; never put it in frontend code. The server creates the `site_content` table at startup; `schema.sql` also includes it. The `ALTER TABLE` statements at the bottom of `schema.sql` migrate existing tables to the inventory fields used by the admin dashboard.
+The backend creates a public Supabase Storage bucket named `vehicles` when the first vehicle or website image is uploaded. The Render backend must have valid `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` environment variables with permission to create buckets and upload objects. Keep the service-role key only in Render; never put it in frontend code. The server creates the `site_content` table at startup; `schema.sql` also includes it. The `ALTER TABLE` statements at the bottom of `schema.sql` migrate existing tables to the inventory fields used by the admin dashboard.
 
 To grant admin access, first register the admin's account through the website, then run this SQL in Supabase SQL Editor, replacing the email:
 ```sql

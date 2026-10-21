@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const requireAdmin = require('../middleware/requireAdmin');
-const { saveVehicleImages } = require('../utils/vehicleImages');
+const { saveVehicleImages, sendVehicleImageError } = require('../utils/vehicleImages');
 
 router.get('/', async (req, res) => {
   try {
@@ -56,6 +56,7 @@ router.post('/admin/image', requireAdmin, async (req, res) => {
     res.status(201).json({ image });
   } catch (error) {
     console.error('Failed to save site content image:', error);
+    if (sendVehicleImageError(res, error)) return;
     res.status(500).json({ message: 'Could not save site content image' });
   }
 });

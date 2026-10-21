@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 const requireAdmin = require('../middleware/requireAdmin');
-const { saveVehicleImages } = require('../utils/vehicleImages');
+const { saveVehicleImages, sendVehicleImageError } = require('../utils/vehicleImages');
 
 function tricycleFromRow(tricycle) {
   return {
@@ -70,6 +70,7 @@ router.post('/', requireAdmin, async (req, res) => {
     res.status(201).json({ message: 'Tricycle added successfully', tricycleId: result.rows[0].id });
   } catch (error) {
     console.error(error);
+    if (sendVehicleImageError(res, error)) return;
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -104,6 +105,7 @@ router.put('/:id', requireAdmin, async (req, res) => {
     res.json({ message: 'Tricycle updated successfully' });
   } catch (error) {
     console.error(error);
+    if (sendVehicleImageError(res, error)) return;
     res.status(500).json({ message: 'Server error' });
   }
 });
