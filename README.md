@@ -36,7 +36,13 @@ SUPABASE_SERVICE_ROLE_KEY=your_private_service_role_key
 
 Get the connection string from your Supabase project's database settings. For Render, use the Supabase connection string intended for external/server connections. Replace any password placeholder with your database password, and keep the connection string private.
 
-The backend creates a public Supabase Storage bucket named `vehicles` when the first vehicle or website image is uploaded. The Render backend must have valid `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` environment variables with permission to create buckets and upload objects. Keep the service-role key only in Render; never put it in frontend code. The server creates the `site_content` table at startup; `schema.sql` also includes it. The `ALTER TABLE` statements at the bottom of `schema.sql` migrate existing tables to the inventory fields used by the admin dashboard.
+The backend creates a public Supabase Storage bucket named `vehicles` when the first vehicle or website image is uploaded. The Render backend must have valid `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` environment variables with permission to create buckets and upload objects. Keep the service-role key only in Render; never put it in frontend code. The server creates the `site_content` table at startup; `schema.sql` also includes it. The `ALTER TABLE` statements at the bottom of `schema.sql` migrate existing tables to the inventory fields used by the admin dashboard, including the `source_country` field for imported cars.
+
+When updating an existing Supabase database, run the updated `schema.sql` in the Supabase SQL Editor before relying on the deployed API. In particular, the `cars.source_country` migration must be applied before the API starts receiving imported-car updates:
+```sql
+ALTER TABLE cars ADD COLUMN IF NOT EXISTS source_country VARCHAR(20);
+```
+Import listings use `china`, `usa`, or `canada`; arrived cars and tricycles continue to use `location` for the Ghana office.
 
 To grant admin access, first register the admin's account through the website, then run this SQL in Supabase SQL Editor, replacing the email:
 ```sql
@@ -72,6 +78,7 @@ The server will start on `http://localhost:3000`
 - `POST /api/cars` - Add new car (admin)
 - `PUT /api/cars/:id` - Update car (admin)
 - `DELETE /api/cars/:id` - Delete car (admin)
+- Car records include `source_country` (`china`, `usa`, or `canada`) for import listings and `location` (`accra` or `koforidua`) for arrived listings.
 
 ### Tricycles
 
