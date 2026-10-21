@@ -5,8 +5,8 @@ const db = require('../config/database');
 // Get all users (admin only)
 router.get('/', async (req, res) => {
   try {
-    const [users] = await db.query('SELECT id, name, email, phone, role, created_at FROM users');
-    res.json(users);
+    const result = await db.query('SELECT id, name, email, phone, role, created_at FROM users');
+    res.json(result.rows);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -16,11 +16,11 @@ router.get('/', async (req, res) => {
 // Get user by ID
 router.get('/:id', async (req, res) => {
   try {
-    const [users] = await db.query('SELECT id, name, email, phone, role, created_at FROM users WHERE id = ?', [req.params.id]);
-    if (users.length === 0) {
+    const result = await db.query('SELECT id, name, email, phone, role, created_at FROM users WHERE id = $1', [req.params.id]);
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
-    res.json(users[0]);
+    res.json(result.rows[0]);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -32,12 +32,12 @@ router.put('/:id', async (req, res) => {
   try {
     const { name, email, phone, role } = req.body;
 
-    const [result] = await db.query(
-      'UPDATE users SET name = ?, email = ?, phone = ?, role = ? WHERE id = ?',
+    const result = await db.query(
+      'UPDATE users SET name = $1, email = $2, phone = $3, role = $4 WHERE id = $5',
       [name, email, phone, role, req.params.id]
     );
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
 
@@ -51,9 +51,9 @@ router.put('/:id', async (req, res) => {
 // Delete user
 router.delete('/:id', async (req, res) => {
   try {
-    const [result] = await db.query('DELETE FROM users WHERE id = ?', [req.params.id]);
+    const result = await db.query('DELETE FROM users WHERE id = $1', [req.params.id]);
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
 

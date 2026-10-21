@@ -5,8 +5,8 @@ const db = require('../config/database');
 // Get all tricycles
 router.get('/', async (req, res) => {
   try {
-    const [tricycles] = await db.query('SELECT * FROM tricycles WHERE status = ? ORDER BY created_at DESC', ['available']);
-    res.json(tricycles);
+    const result = await db.query('SELECT * FROM tricycles WHERE status = $1 ORDER BY created_at DESC', ['available']);
+    res.json(result.rows);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -16,11 +16,11 @@ router.get('/', async (req, res) => {
 // Get tricycle by ID
 router.get('/:id', async (req, res) => {
   try {
-    const [tricycles] = await db.query('SELECT * FROM tricycles WHERE id = ?', [req.params.id]);
-    if (tricycles.length === 0) {
+    const result = await db.query('SELECT * FROM tricycles WHERE id = $1', [req.params.id]);
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Tricycle not found' });
     }
-    res.json(tricycles[0]);
+    res.json(result.rows[0]);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -32,12 +32,12 @@ router.post('/', async (req, res) => {
   try {
     const { brand, model, year, price, mileage, fuel_type, color, description, image_url } = req.body;
 
-    const [result] = await db.query(
-      'INSERT INTO tricycles (brand, model, year, price, mileage, fuel_type, color, description, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    const result = await db.query(
+      'INSERT INTO tricycles (brand, model, year, price, mileage, fuel_type, color, description, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id',
       [brand, model, year, price, mileage, fuel_type, color, description, image_url]
     );
 
-    res.status(201).json({ message: 'Tricycle added successfully', tricycleId: result.insertId });
+    res.status(201).json({ message: 'Tricycle added successfully', tricycleId: result.rows[0].id });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -49,12 +49,12 @@ router.put('/:id', async (req, res) => {
   try {
     const { brand, model, year, price, mileage, fuel_type, color, description, image_url, status } = req.body;
 
-    const [result] = await db.query(
-      'UPDATE tricycles SET brand = ?, model = ?, year = ?, price = ?, mileage = ?, fuel_type = ?, color = ?, description = ?, image_url = ?, status = ? WHERE id = ?',
+    const result = await db.query(
+      'UPDATE tricycles SET brand = $1, model = $2, year = $3, price = $4, mileage = $5, fuel_type = $6, color = $7, description = $8, image_url = $9, status = $10 WHERE id = $11',
       [brand, model, year, price, mileage, fuel_type, color, description, image_url, status, req.params.id]
     );
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Tricycle not found' });
     }
 
@@ -68,9 +68,9 @@ router.put('/:id', async (req, res) => {
 // Delete tricycle
 router.delete('/:id', async (req, res) => {
   try {
-    const [result] = await db.query('DELETE FROM tricycles WHERE id = ?', [req.params.id]);
+    const result = await db.query('DELETE FROM tricycles WHERE id = $1', [req.params.id]);
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Tricycle not found' });
     }
 

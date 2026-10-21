@@ -10,8 +10,8 @@ router.post('/register', async (req, res) => {
     const { name, email, password, phone } = req.body;
 
     // Check if user exists
-    const [existing] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (existing.length > 0) {
+    const existing = await db.query('SELECT id FROM users WHERE email = $1', [email]);
+    if (existing.rowCount > 0) {
       return res.status(400).json({ message: 'User already exists' });
     }
 
@@ -19,12 +19,12 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Insert user
-    const [result] = await db.query(
-      'INSERT INTO users (name, email, password, phone) VALUES (?, ?, ?, ?)',
+    const result = await db.query(
+      'INSERT INTO users (name, email, password, phone) VALUES ($1, $2, $3, $4) RETURNING id',
       [name, email, hashedPassword, phone]
     );
 
-    res.status(201).json({ message: 'User registered successfully', userId: result.insertId });
+    res.status(201).json({ message: 'User registered successfully', userId: result.rows[0].id });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -37,12 +37,12 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body;
 
     // Find user
-    const [users] = await db.query('SELECT * FROM users WHERE email = ?', [email]);
-    if (users.length === 0) {
+    const result = await db.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rowCount === 0) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const user = users[0];
+    const user = result.rows[0];
 
     // Check password
     const validPassword = await bcrypt.compare(password, user.password);

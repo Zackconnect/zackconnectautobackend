@@ -7,12 +7,12 @@ router.post('/', async (req, res) => {
   try {
     const { name, email, phone, enquiryType, subject, message, preferredMethod } = req.body;
 
-    const [result] = await db.query(
-      'INSERT INTO contact_messages (name, email, phone, enquiry_type, subject, message, preferred_method) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    const result = await db.query(
+      'INSERT INTO contact_messages (name, email, phone, enquiry_type, subject, message, preferred_method) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
       [name, email, phone, enquiryType, subject, message, preferredMethod]
     );
 
-    res.status(201).json({ message: 'Message sent successfully', messageId: result.insertId });
+    res.status(201).json({ message: 'Message sent successfully', messageId: result.rows[0].id });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -22,8 +22,8 @@ router.post('/', async (req, res) => {
 // Get all contact messages (admin only)
 router.get('/', async (req, res) => {
   try {
-    const [messages] = await db.query('SELECT * FROM contact_messages ORDER BY created_at DESC');
-    res.json(messages);
+    const result = await db.query('SELECT * FROM contact_messages ORDER BY created_at DESC');
+    res.json(result.rows);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -33,9 +33,9 @@ router.get('/', async (req, res) => {
 // Delete contact message
 router.delete('/:id', async (req, res) => {
   try {
-    const [result] = await db.query('DELETE FROM contact_messages WHERE id = ?', [req.params.id]);
+    const result = await db.query('DELETE FROM contact_messages WHERE id = $1', [req.params.id]);
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Message not found' });
     }
 

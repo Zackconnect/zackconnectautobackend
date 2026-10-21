@@ -1,6 +1,6 @@
 # Zackconnect Autos Backend
 
-Node.js and MySQL backend API for Zackconnect Autos vehicle management system.
+Node.js and Supabase PostgreSQL backend API for Zackconnect Autos vehicle management system.
 
 ## Features
 
@@ -13,7 +13,7 @@ Node.js and MySQL backend API for Zackconnect Autos vehicle management system.
 ## Prerequisites
 
 - Node.js (v14 or higher)
-- MySQL (v5.7 or higher)
+- A Supabase project (PostgreSQL)
 
 ## Installation
 
@@ -22,22 +22,16 @@ Node.js and MySQL backend API for Zackconnect Autos vehicle management system.
 npm install
 ```
 
-2. Configure environment variables in `.env`:
+2. Create a Supabase project, then open **SQL Editor** in its dashboard and run the contents of `schema.sql` to create the tables.
+
+3. Configure the environment variables in `.env`:
 ```
 PORT=3000
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=zackconnect_autos
+DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@[YOUR-HOST]:5432/postgres
 JWT_SECRET=your_jwt_secret_key
 ```
 
-3. Create database and tables:
-```bash
-mysql -u root -p < schema.sql
-```
-
-Or manually run the SQL commands in `schema.sql` in your MySQL client.
+Get the connection string from your Supabase project's database settings. For Render, use the Supabase connection string intended for external/server connections. Replace any password placeholder with your database password, and keep the connection string private.
 
 ## Running the Server
 
@@ -90,6 +84,8 @@ The server will start on `http://localhost:3000`
 - `DELETE /api/contact/:id` - Delete message (admin)
 
 ## Database Schema
+
+The PostgreSQL schema is defined in `schema.sql`. It creates the application tables; it does not migrate data from an existing MySQL database.
 
 ### Users
 - id, name, email, password, phone, role, created_at, updated_at
