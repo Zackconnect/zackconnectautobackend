@@ -6,6 +6,8 @@ Node.js and Supabase PostgreSQL backend API for Zackconnect Autos vehicle manage
 
 - User authentication (register/login with JWT)
 - Admin-protected car and tricycle management (CRUD operations)
+- Shared database-backed homepage, category, announcement, and site-content settings
+- Database-backed contact enquiries and vehicle import requests
 - User management
 - Contact form handling
 
@@ -34,7 +36,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_private_service_role_key
 
 Get the connection string from your Supabase project's database settings. For Render, use the Supabase connection string intended for external/server connections. Replace any password placeholder with your database password, and keep the connection string private.
 
-Create a public Supabase Storage bucket named `vehicles` for vehicle photos. Keep the service-role key only in Render's backend environment variables; never put it in frontend code. The `ALTER TABLE` statements at the bottom of `schema.sql` migrate existing tables to the inventory fields used by the admin dashboard.
+Create a public Supabase Storage bucket named `vehicles` for vehicle and website images. Keep the service-role key only in Render's backend environment variables; never put it in frontend code. The server creates the `site_content` table at startup; `schema.sql` also includes it. The `ALTER TABLE` statements at the bottom of `schema.sql` migrate existing tables to the inventory fields used by the admin dashboard.
 
 To grant admin access, first register the admin's account through the website, then run this SQL in Supabase SQL Editor, replacing the email:
 ```sql
@@ -92,6 +94,13 @@ The server will start on `http://localhost:3000`
 - `GET /api/contact` - Get all messages (admin)
 - `DELETE /api/contact/:id` - Delete message (admin)
 
+### Website content
+
+- `GET /api/site-content` - Get public website settings
+- `GET /api/site-content/admin` - Get dashboard settings (admin)
+- `PUT /api/site-content/admin` - Save dashboard settings (admin)
+- `POST /api/site-content/admin/image` - Upload a website image (admin)
+
 ## Database Schema
 
 The PostgreSQL schema is defined in `schema.sql`. It creates the application tables; it does not migrate data from an existing MySQL database.
@@ -106,11 +115,14 @@ The PostgreSQL schema is defined in `schema.sql`. It creates the application tab
 - id, brand, model, year, price, mileage, fuel_type, color, description, image_url, status, created_at, updated_at
 
 ### Contact Messages
-- id, name, email, phone, message, created_at
+- Contact enquiries and import requests are saved in `contact_messages` and shown in the admin dashboard.
+
+### Website Content
+- Categories, homepage tiles, announcements, page copy/images, activity, and migrated browser-only submissions are saved as JSON in `site_content`.
 
 ## Security Notes
 
 - Passwords are hashed using bcryptjs
 - JWT tokens are used for authentication
-- Add middleware to protect admin routes in production
+- Dashboard settings and contact-message reads/deletes require an admin JWT
 # zackconnectautobackend

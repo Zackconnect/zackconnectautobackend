@@ -7,7 +7,7 @@ function getStorageConfig() {
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for vehicle photo uploads');
+    throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required for image uploads');
   }
 
   return { supabaseUrl: supabaseUrl.replace(/\/$/, ''), serviceRoleKey };
@@ -61,8 +61,8 @@ async function saveVehicleImages(images) {
 
     if (!response.ok) {
       const detail = await response.text();
-      console.error('Supabase vehicle photo upload failed:', response.status, detail);
-      throw new Error(`Vehicle photo upload failed (${response.status})`);
+      console.error('Supabase image upload failed:', response.status, detail);
+      throw new Error(`Image upload failed (${response.status})`);
     }
 
     persistedImages.push(`${supabaseUrl}/storage/v1/object/public/${bucket}/${objectPath}`);
