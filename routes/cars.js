@@ -1,12 +1,31 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
+const requireAdmin = require('../middleware/requireAdmin');
+const { saveVehicleImages } = require('../utils/vehicleImages');
+
+function carFromRow(car) {
+  return {
+    ...car,
+    images: car.images?.length ? car.images : (car.image_url ? [car.image_url] : [])
+  };
+}
 
 // Get all cars
 router.get('/', async (req, res) => {
   try {
     const result = await db.query('SELECT * FROM cars WHERE status = $1 ORDER BY created_at DESC', ['available']);
-    res.json(result.rows);
+    res.json(result.rows.map(carFromRow));
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.get('/admin', requireAdmin, async (req, res) => {
+  try {
+    const result = await db.query('SELECT * FROM cars ORDER BY created_at DESC');
+    res.json(result.rows.map(carFromRow));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -20,7 +39,7 @@ router.get('/:id', async (req, res) => {
     if (result.rowCount === 0) {
       return res.status(404).json({ message: 'Car not found' });
     }
-    res.json(result.rows[0]);
+    res.json(carFromRow(result.rows[0]));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
@@ -28,13 +47,24 @@ router.get('/:id', async (req, res) => {
 });
 
 // Add new car (admin only)
-router.post('/', async (req, res) => {
+router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { make, model, year, price, mileage, fuel_type, transmission, color, description, image_url } = req.body;
+    const {
+      make, model, year, price, mileage, fuel_type, transmission, color,
+      description, images, vehicle_condition, listing_type, location, featured
+    } = req.body;
+    const savedImages = await saveVehicleImages(images);
 
     const result = await db.query(
-      'INSERT INTO cars (make, model, year, price, mileage, fuel_type, transmission, color, description, image_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id',
-      [make, model, year, price, mileage, fuel_type, transmission, color, description, image_url]
+      `INSERT INTO cars
+        (make, model, year, price, mileage, fuel_type, transmission, color, description,
+         image_url, images, vehicle_condition, listing_type, location, featured)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+       RETURNING id`,
+      [
+        make, model, year, price, mileage, fuel_type, transmission, color, description,
+        savedImages[0] || null, savedImages, vehicle_condition, listing_type, location, Boolean(featured)
+      ]
     );
 
     res.status(201).json({ message: 'Car added successfully', carId: result.rows[0].id });
@@ -45,13 +75,26 @@ router.post('/', async (req, res) => {
 });
 
 // Update car
-router.put('/:id', async (req, res) => {
+router.put('/:id', requireAdmin, async (req, res) => {
   try {
-    const { make, model, year, price, mileage, fuel_type, transmission, color, description, image_url, status } = req.body;
+    const {
+      make, model, year, price, mileage, fuel_type, transmission, color,
+      description, images, vehicle_condition, listing_type, location, featured, status
+    } = req.body;
+    const savedImages = await saveVehicleImages(images);
 
     const result = await db.query(
-      'UPDATE cars SET make = $1, model = $2, year = $3, price = $4, mileage = $5, fuel_type = $6, transmission = $7, color = $8, description = $9, image_url = $10, status = $11 WHERE id = $12',
-      [make, model, year, price, mileage, fuel_type, transmission, color, description, image_url, status, req.params.id]
+      `UPDATE cars SET
+        make = $1, model = $2, year = $3, price = $4, mileage = $5, fuel_type = $6,
+        transmission = $7, color = $8, description = $9, image_url = $10, images = $11,
+        vehicle_condition = $12, listing_type = $13, location = $14, featured = $15,
+        status = $16, updated_at = CURRENT_TIMESTAMP
+       WHERE id = $17`,
+      [
+        make, model, year, price, mileage, fuel_type, transmission, color, description,
+        savedImages[0] || null, savedImages, vehicle_condition, listing_type, location,
+        Boolean(featured), status || 'available', req.params.id
+      ]
     );
 
     if (result.rowCount === 0) {
@@ -66,7 +109,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete car
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const result = await db.query('DELETE FROM cars WHERE id = $1', [req.params.id]);
 

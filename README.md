@@ -5,14 +5,13 @@ Node.js and Supabase PostgreSQL backend API for Zackconnect Autos vehicle manage
 ## Features
 
 - User authentication (register/login with JWT)
-- Cars management (CRUD operations)
-- Tricycles management (CRUD operations)
+- Admin-protected car and tricycle management (CRUD operations)
 - User management
 - Contact form handling
 
 ## Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v18 or higher)
 - A Supabase project (PostgreSQL)
 
 ## Installation
@@ -22,16 +21,26 @@ Node.js and Supabase PostgreSQL backend API for Zackconnect Autos vehicle manage
 npm install
 ```
 
-2. Create a Supabase project, then open **SQL Editor** in its dashboard and run the contents of `schema.sql` to create the tables.
+2. Create a Supabase project, then open **SQL Editor** in its dashboard and run the contents of `schema.sql` to create or update the tables.
 
 3. Configure the environment variables in `.env`:
 ```
 PORT=3000
 DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@[YOUR-HOST]:5432/postgres
 JWT_SECRET=your_jwt_secret_key
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_private_service_role_key
 ```
 
 Get the connection string from your Supabase project's database settings. For Render, use the Supabase connection string intended for external/server connections. Replace any password placeholder with your database password, and keep the connection string private.
+
+Create a public Supabase Storage bucket named `vehicles` for vehicle photos. Keep the service-role key only in Render's backend environment variables; never put it in frontend code. The `ALTER TABLE` statements at the bottom of `schema.sql` migrate existing tables to the inventory fields used by the admin dashboard.
+
+To grant admin access, first register the admin's account through the website, then run this SQL in Supabase SQL Editor, replacing the email:
+```sql
+UPDATE users SET role = 'admin' WHERE email = 'admin@example.com';
+```
+Log out and back in so the new JWT contains the admin role. Admin vehicle APIs require that role.
 
 ## Running the Server
 

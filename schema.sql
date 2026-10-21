@@ -20,7 +20,12 @@ CREATE TABLE IF NOT EXISTS cars (
   transmission VARCHAR(20),
   color VARCHAR(30),
   description TEXT,
-  image_url VARCHAR(255),
+  image_url TEXT,
+  images TEXT[] NOT NULL DEFAULT '{}',
+  vehicle_condition VARCHAR(20) NOT NULL DEFAULT 'used',
+  listing_type VARCHAR(20) NOT NULL DEFAULT 'arrived',
+  location VARCHAR(50) NOT NULL DEFAULT 'koforidua',
+  featured BOOLEAN NOT NULL DEFAULT FALSE,
   status VARCHAR(20) NOT NULL DEFAULT 'available'
     CHECK (status IN ('available', 'sold', 'reserved')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -37,7 +42,12 @@ CREATE TABLE IF NOT EXISTS tricycles (
   fuel_type VARCHAR(20),
   color VARCHAR(30),
   description TEXT,
-  image_url VARCHAR(255),
+  image_url TEXT,
+  images TEXT[] NOT NULL DEFAULT '{}',
+  vehicle_condition VARCHAR(20) NOT NULL DEFAULT 'new',
+  tricycle_type VARCHAR(20) NOT NULL DEFAULT 'passenger',
+  location VARCHAR(50) NOT NULL DEFAULT 'koforidua',
+  featured BOOLEAN NOT NULL DEFAULT FALSE,
   status VARCHAR(20) NOT NULL DEFAULT 'available'
     CHECK (status IN ('available', 'sold', 'reserved')),
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -55,3 +65,17 @@ CREATE TABLE IF NOT EXISTS contact_messages (
   preferred_method VARCHAR(20),
   created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+ALTER TABLE cars ADD COLUMN IF NOT EXISTS images TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE cars ADD COLUMN IF NOT EXISTS vehicle_condition VARCHAR(20) NOT NULL DEFAULT 'used';
+ALTER TABLE cars ADD COLUMN IF NOT EXISTS listing_type VARCHAR(20) NOT NULL DEFAULT 'arrived';
+ALTER TABLE cars ADD COLUMN IF NOT EXISTS location VARCHAR(50) NOT NULL DEFAULT 'koforidua';
+ALTER TABLE cars ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE cars ALTER COLUMN image_url TYPE TEXT;
+
+ALTER TABLE tricycles ADD COLUMN IF NOT EXISTS images TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE tricycles ADD COLUMN IF NOT EXISTS vehicle_condition VARCHAR(20) NOT NULL DEFAULT 'new';
+ALTER TABLE tricycles ADD COLUMN IF NOT EXISTS tricycle_type VARCHAR(20) NOT NULL DEFAULT 'passenger';
+ALTER TABLE tricycles ADD COLUMN IF NOT EXISTS location VARCHAR(50) NOT NULL DEFAULT 'koforidua';
+ALTER TABLE tricycles ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE tricycles ALTER COLUMN image_url TYPE TEXT;
