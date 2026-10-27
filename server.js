@@ -29,6 +29,15 @@ app.get('/', (req, res) => {
 
 async function startServer() {
   await db.query(`
+    CREATE TABLE IF NOT EXISTS password_reset_tokens (
+      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      token_hash CHAR(64) NOT NULL UNIQUE,
+      expires_at TIMESTAMPTZ NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  await db.query(`
     CREATE TABLE IF NOT EXISTS site_content (
       id SMALLINT PRIMARY KEY DEFAULT 1 CHECK (id = 1),
       content JSONB NOT NULL DEFAULT '{}'::jsonb,

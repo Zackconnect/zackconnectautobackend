@@ -13,7 +13,7 @@ Node.js and Supabase PostgreSQL backend API for Zackconnect Autos vehicle manage
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js (v20 or higher)
 - A Supabase project (PostgreSQL)
 
 ## Installation
@@ -32,6 +32,13 @@ DATABASE_URL=postgresql://postgres:[YOUR-PASSWORD]@[YOUR-HOST]:5432/postgres
 JWT_SECRET=your_jwt_secret_key
 SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=your_private_service_role_key
+FRONTEND_URL=https://your-website.example
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your_smtp_username
+SMTP_PASSWORD=your_smtp_password
+SMTP_FROM=Zackconnect Autos <no-reply@example.com>
 ```
 
 Get the connection string from your Supabase project's database settings. For Render, use the Supabase connection string intended for external/server connections. Replace any password placeholder with your database password, and keep the connection string private.
@@ -49,6 +56,8 @@ To grant admin access, first register the admin's account through the website, t
 UPDATE users SET role = 'admin' WHERE email = 'admin@example.com';
 ```
 Log out and back in so the new JWT contains the admin role. Admin vehicle APIs require that role.
+
+Password reset emails use the configured SMTP account. Set `FRONTEND_URL` to the public website origin and configure the SMTP variables above in the backend deployment environment; never commit these values or put SMTP credentials in the frontend. Reset links expire after 30 minutes and only one link per account can be requested each minute. The backend creates the `password_reset_tokens` table at startup, and the same table is included in `schema.sql`.
 
 ## Running the Server
 
@@ -70,6 +79,8 @@ The server will start on `http://localhost:3000`
 
 - `POST /api/auth/register` - Register new user
 - `POST /api/auth/login` - Login user
+- `POST /api/auth/forgot-password` - Email a one-time password reset link when the email belongs to an account
+- `POST /api/auth/reset-password` - Set a new password with a valid, unexpired reset token
 
 ### Cars
 
